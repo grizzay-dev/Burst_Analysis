@@ -11,6 +11,7 @@
 #include "TH1.h"
 #include "TGraph.h"
 #include <cmath>
+#include <vector>
 
 class Burst {
     //Method of burst detection adapated from: https://www.sciencedirect.com/science/article/pii/S1002007108003432
