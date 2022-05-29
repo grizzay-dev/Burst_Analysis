@@ -20,7 +20,7 @@ class Burst {
     //Method of burst detection adapated from: https://www.sciencedirect.com/science/article/pii/S1002007108003432
     public : 
         //Spike train
-        TH1C                    *spike_train{nullptr};
+        TH1C* spike_train;// {nullptr};
 
         //Burst processing properties
         int                     id;
@@ -76,17 +76,7 @@ void PrintSequence(vector<double> sequence, int length, string name = "Sequence:
     cout << " - END";
 }
 
-double CumulativeAverage(int start, int end, double data[]){
-  double sum = 0.0, delta, avg;
-  for(int x = start; x < end; x++){
-    delta = data[x+1] - data[x];
-    sum += delta;
-  }
-  avg = sum / (end-start);
-  return avg;
-}
-
-double CumulativeAverageJ(int start, int end, vector<double> vect){
+double CumulativeAverage(int start, int end, vector<double> vect){
     double sum = 0.0;
     double delta, n, avg;
 
@@ -95,7 +85,6 @@ double CumulativeAverageJ(int start, int end, vector<double> vect){
         //delta = vect.at(x + 1) - vect.at(x);
         sum += delta;
     }
-
     n = (double)end - (double)start;
     avg = sum / n;
     return avg;
@@ -131,7 +120,7 @@ void Burst::Spikes() {
     n_bins = spike_train->GetNbinsX();
     n_spikes = spike_train->GetEntries();
     if (n_spikes > 0) {
-        for (int bin = 0; bin < n_bins; bin++) {
+        for (int bin = 0; bin <= n_bins; bin++) {
             int spike_value;
             spike_value = spike_train->GetBinContent(bin);
             if (spike_value == 1) {
@@ -148,6 +137,7 @@ void Burst::ISI(){
     for(int x = 0; x < isi_length; x++){
         isi_sequence.push_back(spikes_x.at(x + 1) - spikes_x.at(x));
     }
+    
     double sum = accumulate(isi_sequence.begin(), isi_sequence.end(), 0.0);
     isi_mean = sum / double(isi_sequence.size());
 
@@ -157,6 +147,7 @@ void Burst::ISI(){
 
     isi_sd = sqrt(isi_sd/double(isi_sequence.size()));
     isi_threshold = isi_sd / isi_mean;
+    
 }
 
 void Burst::LN(){
@@ -176,7 +167,7 @@ void Burst::DetectBurst(){
 
     while (end < isi_length + 2){
         double burst_average = 1.0;
-        burst_average = CumulativeAverageJ(start, end, spikes_x);
+        burst_average = CumulativeAverage(start, end, spikes_x);
 
         if((burst_average < (ln_mean * k)) && (burst_average > 0)){
             detected = true;
@@ -214,6 +205,7 @@ void Burst::DetectBurst(){
 void Burst::ProcessNeuron(){
     cout << "\nProcessing entry: " << id;
     Spikes();
+    
     if(n_spikes > 0){
         ISI();
         if(isi_threshold >= 2){
