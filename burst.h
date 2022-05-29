@@ -12,39 +12,43 @@
 #include "TGraph.h"
 #include <cmath>
 #include <vector>
+#include <string>
+
+using namespace std;
 
 class Burst {
     //Method of burst detection adapated from: https://www.sciencedirect.com/science/article/pii/S1002007108003432
     public : 
         //Spike train
-        TH1C        *spike_train;
+        TH1C                    *spike_train{nullptr};
 
         //Burst processing properties
-        int         id;
-        int         n_bins;
-        int         n_spikes                = 0;
-        int         isi_length;
-        int         ln_length;
+        int                     id;
+        int                     n_bins;
+        int                     n_spikes{ 0 };
+        int                     isi_length;
+        int                     ln_length;
 
-        double      k;
-        double*     spikes_x;
-        double*     isi_sequence;
-        double*     ln_sequence;
-        double      isi_sd                  = 0;
-        double      isi_mean                = 0;
-        double      isi_threshold           = 0;
-        double      ln_mean                 = 0;
+        double                  k{ 1 };
+        double                  isi_sd{ 0 };
+        double                  isi_mean{ 0 };
+        double                  isi_threshold{ 0 };
+        double                  ln_mean{ 0 };
+
+        vector<double>          spikes_x;
+        vector<double>          isi_sequence;
+        vector<double>          ln_sequence;
 
         //Burst metrics
-        bool        bursting                = false;
-        int         burst_type              = 0;
-        int         n_bursts                = 0;
-        int**       burst_locations;
+        bool                    bursting{ false };
+        int                     burst_type{ 0 };
+        int                     n_bursts{ 0 };
+        vector<vector<int>>     burst_locations_j;
 
-        double      burst_total_duration    = 0;
-        double      burst_average_duration  = 0;
-        double      burst_frequency         = 0;
-        double      ML                      = 0;
+        double                  burst_total_duration{ 0 };
+        double                  burst_average_duration{ 0 };
+        double                  burst_frequency{ 0 };
+        double                  ML{ 0 };
 
         //Constructor
         Burst(int entry_id, TH1C* entry, double constant = 1){
@@ -58,23 +62,21 @@ class Burst {
         virtual void    ISI();
         virtual void    LN();
         virtual void    DetectBurst();
-        virtual void    BurstLocations();
         virtual void    ProcessNeuron();
 };
 
-void PrintSequence(double sequence[], int length, string name = "Sequence:"){
+void PrintSequence(vector<double> sequence, int length, string name = "Sequence:"){
     for(int i = 0; i < length; i++){
         if(i == 0){
-            cout << name << ": ";
+            printf("\n%-40s(%i) ", name.c_str(), length);
         }
-        cout << sequence[i];
+        cout << sequence.at(i);
         if(i != length -1) cout << ", ";
     }
-    cout << " - END\n";
+    cout << " - END";
 }
 
-double CumulativeAverage(int start, int end, double data[])
-{
+double CumulativeAverage(int start, int end, double data[]){
   double sum = 0.0, delta, avg;
   for(int x = start; x < end; x++){
     delta = data[x+1] - data[x];
@@ -84,49 +86,56 @@ double CumulativeAverage(int start, int end, double data[])
   return avg;
 }
 
+double CumulativeAverageJ(int start, int end, vector<double> vect){
+    double sum = 0.0;
+    double delta, n, avg;
+
+    for (int x = start; x < end; x++) {
+        delta = vect[x + 1] - vect[x];
+        //delta = vect.at(x + 1) - vect.at(x);
+        sum += delta;
+    }
+
+    n = (double)end - (double)start;
+    avg = sum / n;
+    return avg;
+}
+
 void Burst::PrintMetrics(){
 
-    cout << "\nBurst Metrics:\n";
-    cout << "Entery (id): "                 << id                       << ".\n";
-    cout << "Burst type: "                  << burst_type               << ".\n";
-    cout << "# of bursts: "                 << n_bursts                 << ".\n";
-    if(n_bursts > 0){
-        for(int z = 0; z < n_bursts; z++){
-            cout << "    #" << (z+1) << ": " << burst_locations[z][0] << " ---> " << burst_locations[z][1] << "\n";
-        }
-    }
-    cout << "Total burst duration: "        << burst_total_duration     << ".\n";
-    cout << "Average burst duration: "      << burst_average_duration   << ".\n";
-    cout << "Burst frequency: "             << burst_frequency          << ".\n";
-    cout << "ML: "                          << ML                       << ".\n";
-    cout << "ISI threshold: "               << isi_threshold            << ".\n";
+    printf("\n\nBURST METRICS");
+    printf("\n%-40s%-20i", "ID", id);
+    printf("\n%-40s%-20i", "Burst Type", burst_type);
+    printf("\n%-40s%-20i", "# of Bursts", n_bursts);
+    printf("\n%-40s%-20f", "Total Burst Duration", burst_total_duration);
+    printf("\n%-40s%-20f", "Avg burst duration", burst_average_duration);
+    printf("\n%-40s%-20f", "Burst frequency", burst_frequency);
+    printf("\n%-40s%-20f", "ML", ML);
+    printf("\n%-40s%-20f", "ISI Threshold", isi_threshold);
+    printf("\n");
     PrintSequence(spikes_x, n_spikes, "Spike Train");
     PrintSequence(isi_sequence, isi_length, "ISI Seq");
     
+    if (n_bursts > 0) {
+        int x = 1;
+        printf("\nBurst Locations:");
+        for (vector<int> i : burst_locations_j) {
+            printf("\n%41s%-5i%.2f%6s   %.2f", "#", x, spikes_x.at(i.at(0)), "--->", spikes_x.at(i.at(1)));
+            x++;
+        }
+            
+    }
 }
 
-void Burst::Spikes(){
+void Burst::Spikes() {
     n_bins = spike_train->GetNbinsX();
-    //Set spike count to 0
-    n_spikes = 0;
-    for(int bin = 0; bin < n_bins; bin++){
-        int spike_value;
-        spike_value = spike_train->GetBinContent(bin);
-        if(spike_value == 1) n_spikes ++;
-    }   
-    
-    if(n_spikes > 0){
-        //assign array length
-        spikes_x = (double*) malloc(sizeof(double)*n_spikes);
-
-        //fill spikes_x with spike x position
-        int counter = 0;
-        for(int bin = 0; bin < n_bins; bin++){
+    n_spikes = spike_train->GetEntries();
+    if (n_spikes > 0) {
+        for (int bin = 0; bin < n_bins; bin++) {
             int spike_value;
             spike_value = spike_train->GetBinContent(bin);
-            if(spike_value==1){
-                spikes_x[counter] = (bin * 0.25) + 400; //0.25s per bin, recordings start at 400ms.
-                counter++;
+            if (spike_value == 1) {
+                spikes_x.push_back((bin * 0.25) + 400);
             }
         }
     }
@@ -134,61 +143,41 @@ void Burst::Spikes(){
 
 void Burst::ISI(){
     if(n_spikes==0) return;
-
     isi_length = n_spikes - 1;
-    
-    //resize isi_sequence
-    isi_sequence = (double*) malloc(sizeof(double)*isi_length);
+
     for(int x = 0; x < isi_length; x++){
-        isi_sequence[x] = spikes_x[x+1] - spikes_x[x];
+        isi_sequence.push_back(spikes_x.at(x + 1) - spikes_x.at(x));
+    }
+    double sum = accumulate(isi_sequence.begin(), isi_sequence.end(), 0.0);
+    isi_mean = sum / double(isi_sequence.size());
+
+    for (double x : isi_sequence) {
+        isi_sd += pow(x - isi_mean, 2);
     }
 
-    double sum = 0.0;
-    for(int x = 0; x < isi_length; x++){
-        sum += isi_sequence[x];
-    }
-
-    isi_mean = sum / isi_length;
-    for(int x = 0; x < isi_length; ++x){
-        isi_sd += pow(isi_sequence[x] - isi_mean, 2);
-    }
-    isi_sd = sqrt(isi_sd/double(isi_length));
+    isi_sd = sqrt(isi_sd/double(isi_sequence.size()));
     isi_threshold = isi_sd / isi_mean;
 }
 
 void Burst::LN(){
-    ln_length = 0;
     for(int x = 0; x < isi_length; x++){
-        if(isi_sequence[x] < isi_mean) ln_length++;
-    }
-
-    //resize ln_sequence
-    ln_sequence = (double*) malloc(sizeof(double)*ln_length);
-    int ln_counter = 0;
-    for(int x = 0; x < isi_length; x++){
-        if(isi_sequence[x] < isi_mean){
-            ln_sequence[ln_counter] = isi_sequence[x];
-            ln_counter++;
+        if(isi_sequence.at(x) < isi_mean) {
+            ln_sequence.push_back(isi_sequence.at(x));
         }
     }
-
-    double ln_sum = 0;
-    for(int x = 0; x < ln_length; x++){
-        ln_sum += ln_sequence[x];
-    }
-
-    ln_mean = (double)ln_sum / (double)ln_length;
+    double ln_sum = accumulate(ln_sequence.begin(), ln_sequence.end(), 0.0);
+    ln_mean = (double)ln_sum / (double)(ln_sequence.size());
 }
 
 void Burst::DetectBurst(){
-    
     int start = 0;
     int end =  2;
     bool detected = false;
 
     while (end < isi_length + 2){
-        double burst_average = CumulativeAverage(start, end, spikes_x);
-        burst_average = CumulativeAverage(start, end, spikes_x);
+        double burst_average = 1.0;
+        burst_average = CumulativeAverageJ(start, end, spikes_x);
+
         if((burst_average < (ln_mean * k)) && (burst_average > 0)){
             detected = true;
             end += 1;
@@ -197,7 +186,9 @@ void Burst::DetectBurst(){
         } else {
             if(detected){
                 n_bursts += 1;
-                burst_total_duration += (spikes_x[end-1] - spikes_x[start]);
+                burst_total_duration += spikes_x.at(end - 1) - spikes_x.at(start);
+                vector<int> x1_x2 = { start, (end - 1) };
+                burst_locations_j.push_back(x1_x2);
 
                 //reset for next sequence
                 start = end;
@@ -220,59 +211,14 @@ void Burst::DetectBurst(){
     }
 }
 
-void Burst::BurstLocations(){
-    if(n_bursts > 0){
-        //burst_locations = (int**) malloc((n_bursts * 2) * sizeof(int)); THIS DOESNT WORK SEE BELOW
-        //NEED TO CHECK THIS malloc() for validity
-        burst_locations = (int**) malloc (sizeof(int*) * n_bursts * 2);
-        for(int i = 0; i < n_bursts; i++){
-            burst_locations[i] = (int*) malloc(sizeof(int*) * 2);
-        }
-
-        //reusing burst detect code not optomised...
-        int start = 0;
-        int end =  2;
-        int burst_counter = 0;
-        bool detected = false;
-
-        while (end < isi_length + 2){
-            double burst_average = CumulativeAverage(start, end, spikes_x);
-
-            if((burst_average < (ln_mean * k)) && (burst_average > 0)){
-                detected = true;
-                end += 1;
-            } else {
-                if(detected){
-                    //save locations
-                    burst_locations[burst_counter][0] = start;
-                    burst_locations[burst_counter][1] =  end-1;
-                    burst_counter++;
-                    //reset for next sequence
-                    start = end;
-                    end = start + 2;
-                    detected = false;
-
-                } else {
-                    start = end - 1;
-                    end = start + 2;
-                    detected = false;
-                }
-            }
-        }
-    }
-}
-
 void Burst::ProcessNeuron(){
     cout << "\nProcessing entry: " << id;
-    
     Spikes();
-    
     if(n_spikes > 0){
         ISI();
         if(isi_threshold >= 2){
             LN();
-            DetectBurst();
-            BurstLocations();    
+            DetectBurst();  
         } 
     }
 }
