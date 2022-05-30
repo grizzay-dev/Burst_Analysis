@@ -33,8 +33,8 @@ void analysis::ProcessSingle(Long64_t entry, double k = 1){
     //Draw lines
     for (int i = 0; i < b.n_bursts; i++) {
 
-        int x1 = b.burst_locations_j.at(i).at(0);
-        int x2 = b.burst_locations_j.at(i).at(1);
+        int x1 = b.burst_locations.at(i).at(0);
+        int x2 = b.burst_locations.at(i).at(1);
 
         line = new TLine(b.spikes_x.at(x1), 0.5, b.spikes_x.at(x2), 0.5);
         line->SetLineWidth(10);

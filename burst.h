@@ -43,7 +43,7 @@ class Burst {
         bool                    bursting{ false };
         int                     burst_type{ 0 };
         int                     n_bursts{ 0 };
-        vector<vector<int>>     burst_locations_j;
+        vector<vector<int>>     burst_locations;
 
         double                  burst_total_duration{ 0 };
         double                  burst_average_duration{ 0 };
@@ -108,7 +108,7 @@ void Burst::PrintMetrics(){
     if (n_bursts > 0) {
         int x = 1;
         printf("\nBurst Locations:");
-        for (vector<int> i : burst_locations_j) {
+        for (vector<int> i : burst_locations) {
             printf("\n%41s%-5i%.2f%6s   %.2f", "#", x, spikes_x.at(i.at(0)), "--->", spikes_x.at(i.at(1)));
             x++;
         }
@@ -179,7 +179,7 @@ void Burst::DetectBurst(){
                 n_bursts += 1;
                 burst_total_duration += spikes_x.at(end - 1) - spikes_x.at(start);
                 vector<int> x1_x2 = { start, (end - 1) };
-                burst_locations_j.push_back(x1_x2);
+                burst_locations.push_back(x1_x2);
 
                 //reset for next sequence
                 start = end;
