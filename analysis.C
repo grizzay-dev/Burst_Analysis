@@ -10,7 +10,7 @@
 #include <fstream>
 #include <cmath>
 
-void analysis::ProcessSingle(Long64_t entry, double k){
+void analysis::ProcessSingle(Long64_t entry, double k = 1){
   
   if (fChain == 0) return;
   fChain->GetEntry(entry);
@@ -25,25 +25,34 @@ void analysis::ProcessSingle(Long64_t entry, double k){
   
   //process spike train
   Burst b(entry, spike, k);
+  
   b.ProcessNeuron();
-  b.PrintMetrics();
-  TLine *line;
-  //Draw lines
-  for(int i = 0; i < b.n_bursts; i++){
-    int x1 = b.burst_locations[i][0];
-    int x2 = b.burst_locations[i][1];
+  if (b.n_spikes > 0) {
+    b.PrintMetrics();
+    TLine* line;
+    //Draw lines
+    for (int i = 0; i < b.n_bursts; i++) {
 
-    line = new TLine(b.spikes_x[x1], 0.5, b.spikes_x[x2], 0.5);
-    line -> SetLineWidth(10);
-    line -> SetLineColorAlpha(kRed, 0.35);
+        int x1 = b.burst_locations_j.at(i).at(0);
+        int x2 = b.burst_locations_j.at(i).at(1);
 
-    c1->cd(1);
-    line->Draw();
-    c1->cd(2);
-    line->Draw();
-    c1->cd(1);
+        line = new TLine(b.spikes_x.at(x1), 0.5, b.spikes_x.at(x2), 0.5);
+        line->SetLineWidth(10);
+        line->SetLineColorAlpha(kRed, 0.35);
+
+        c1->cd(1);
+        line->Draw();
+        c1->cd(2);
+        line->Draw();
+        c1->cd(1);
+    }
+    printf("\n\n Procesing complete");
+    c1->Print("burst.png");
   }
-  c1->Print("burst.png");
+  else {
+      printf("\nNo spikes detected");
+  }
+  
 }
 
 void analysis::Loop()
@@ -111,7 +120,8 @@ void analysis::Loop()
     //Process spike train
     //TH1C* hist = (TH1C*)spike->Clone();
     Burst x(jentry, spike);
-    x.ProcessNeuron(); 
+
+    x.ProcessNeuron();
     
     //Save to burst tree
     id              = x.id;
@@ -126,11 +136,7 @@ void analysis::Loop()
     
     tree->Fill();
   }
-
   //commit tree to output file
   output->Write();
   output->Close();
-
-
-  
 }

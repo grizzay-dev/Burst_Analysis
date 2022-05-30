@@ -112,7 +112,6 @@ public :
 
    analysis(TTree *tree=0);
    virtual ~analysis();
-   virtual void     ScanBursting();
    virtual void     ProcessSingle(Long64_t entry, double k);
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
