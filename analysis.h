@@ -113,6 +113,7 @@ public :
    analysis(TTree *tree=0);
    virtual ~analysis();
    virtual void     ProcessSingle(Long64_t entry, double k);
+   virtual void     CompareTrees();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);

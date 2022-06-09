@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<MethodSetup Method="PDEFoam::PDEFoam">
+  <GeneralInfo>
+    <Info name="TMVA Release" value="4.2.1 [262657]"/>
+    <Info name="ROOT Release" value="6.26/02 [399874]"/>
+    <Info name="Creator" value="harry"/>
+    <Info name="Date" value="Thu Jun  2 15:34:16 2022"/>
+    <Info name="Host" value="root-win64-01"/>
+    <Info name="Dir" value="C:\Users\harry\source\repos\grizzay-dev\Burst_Analysis"/>
+    <Info name="Training events" value="1000"/>
+    <Info name="TrainingTime" value="3.71000290e-01"/>
+    <Info name="AnalysisType" value="Regression"/>
+  </GeneralInfo>
+  <Options>
+    <Option name="V" modified="Yes">False</Option>
+    <Option name="VerbosityLevel" modified="No">Default</Option>
+    <Option name="VarTransform" modified="Yes">None</Option>
+    <Option name="H" modified="Yes">False</Option>
+    <Option name="CreateMVAPdfs" modified="No">False</Option>
+    <Option name="IgnoreNegWeightsInTraining" modified="No">False</Option>
+    <Option name="SigBgSeparate" modified="No">False</Option>
+    <Option name="TailCut" modified="Yes">1.000000e-03</Option>
+    <Option name="VolFrac" modified="Yes">6.660000e-02</Option>
+    <Option name="nActiveCells" modified="Yes">500</Option>
+    <Option name="nSampl" modified="Yes">2000</Option>
+    <Option name="nBin" modified="Yes">5</Option>
+    <Option name="Compress" modified="Yes">True</Option>
+    <Option name="MultiTargetRegression" modified="Yes">False</Option>
+    <Option name="Nmin" modified="Yes">10</Option>
+    <Option name="MaxDepth" modified="No">0</Option>
+    <Option name="FillFoamWithOrigWeights" modified="No">False</Option>
+    <Option name="UseYesNoCell" modified="No">False</Option>
+    <Option name="DTLogic" modified="No">None</Option>
+    <Option name="Kernel" modified="Yes">None</Option>
+    <Option name="TargetSelection" modified="Yes">Mpv</Option>
+  </Options>
+  <Variables NVar="2">
+    <Variable VarIndex="0" Expression="NA_T_AX_gmax" Label="NA_T_AX_gmax" Title="NA_T_AX_gmax 1" Unit="units" Internal="NA_T_AX_gmax" Type="F" Min="1.00851212e+01" Max="4.99964905e+01"/>
+    <Variable VarIndex="1" Expression="NA_T_SD_gmax" Label="NA_T_SD_gmax" Title="NA_T_SD_gmax 2" Unit="units" Internal="NA_T_SD_gmax" Type="F" Min="1.59674644e-01" Max="4.81070662e+00"/>
+  </Variables>
+  <Spectators NSpec="0"/>
+  <Classes NClass="1">
+    <Class Name="Regression" Index="0"/>
+  </Classes>
+  <Targets NTrgt="1">
+    <Target TargetIndex="0" Expression="n_bursts" Label="n_bursts" Title="n_bursts" Unit="" Internal="n_bursts" Type="F" Min="0.00000000e+00" Max="3.00000000e+00"/>
+  </Targets>
+  <Transformations NTransformations="0"/>
+  <MVAPdfs/>
+  <Weights SigBgSeparated="0" Frac="1.0000000474974513e-03" DiscrErrCut="-1.0000000000000000e+00" VolFrac="6.6600002348423004e-02" nCells="999" nSampl="2000" nBin="5" EvPerBin="10000" Compress="1" DoRegression="1" CutNmin="1" Nmin="10" CutRMSmin="0" RMSmin="0.0000000000000000e+00" Kernel="0" TargetSelection="1" FillFoamWithOrigWeights="0" UseYesNoCell="0">
+    <Xmin Index="0" Value="1.0097094535827637e+01"/>
+    <Xmin Index="1" Value="2.7502024173736572e-01"/>
+    <Xmax Index="0" Value="4.9976535797119141e+01"/>
+    <Xmax Index="1" Value="4.7274532318115234e+00"/>
+  </Weights>
+</MethodSetup>

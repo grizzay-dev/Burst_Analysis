@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<MethodSetup Method="FDA::FDA_GA">
+  <GeneralInfo>
+    <Info name="TMVA Release" value="4.2.1 [262657]"/>
+    <Info name="ROOT Release" value="6.26/02 [399874]"/>
+    <Info name="Creator" value="harry"/>
+    <Info name="Date" value="Thu Jun  2 15:34:37 2022"/>
+    <Info name="Host" value="root-win64-01"/>
+    <Info name="Dir" value="C:\Users\harry\source\repos\grizzay-dev\Burst_Analysis"/>
+    <Info name="Training events" value="1000"/>
+    <Info name="TrainingTime" value="2.05340004e+01"/>
+    <Info name="AnalysisType" value="Regression"/>
+  </GeneralInfo>
+  <Options>
+    <Option name="V" modified="Yes">False</Option>
+    <Option name="VerbosityLevel" modified="No">Default</Option>
+    <Option name="VarTransform" modified="Yes">Norm</Option>
+    <Option name="H" modified="Yes">False</Option>
+    <Option name="CreateMVAPdfs" modified="No">False</Option>
+    <Option name="IgnoreNegWeightsInTraining" modified="No">False</Option>
+    <Option name="Formula" modified="Yes">(0)+(1)*x0+(2)*x1</Option>
+    <Option name="ParRanges" modified="Yes">(-100,100);(-100,100);(-100,100)</Option>
+    <Option name="FitMethod" modified="Yes">GA</Option>
+    <Option name="Converger" modified="No">None</Option>
+  </Options>
+  <Variables NVar="2">
+    <Variable VarIndex="0" Expression="NA_T_AX_gmax" Label="NA_T_AX_gmax" Title="NA_T_AX_gmax 1" Unit="units" Internal="NA_T_AX_gmax" Type="F" Min="1.00851212e+01" Max="4.99964905e+01"/>
+    <Variable VarIndex="1" Expression="NA_T_SD_gmax" Label="NA_T_SD_gmax" Title="NA_T_SD_gmax 2" Unit="units" Internal="NA_T_SD_gmax" Type="F" Min="1.59674644e-01" Max="4.81070662e+00"/>
+  </Variables>
+  <Spectators NSpec="0"/>
+  <Classes NClass="1">
+    <Class Name="Regression" Index="0"/>
+  </Classes>
+  <Targets NTrgt="1">
+    <Target TargetIndex="0" Expression="n_bursts" Label="n_bursts" Title="n_bursts" Unit="" Internal="n_bursts" Type="F" Min="0.00000000e+00" Max="3.00000000e+00"/>
+  </Targets>
+  <Transformations NTransformations="1">
+    <Transform Name="Normalize">
+      <Selection>
+        <Input NInputs="3">
+          <Input Type="Variable" Label="NA_T_AX_gmax" Expression="NA_T_AX_gmax"/>
+          <Input Type="Variable" Label="NA_T_SD_gmax" Expression="NA_T_SD_gmax"/>
+          <Input Type="Target" Label="n_bursts" Expression="n_bursts"/>
+        </Input>
+        <Output NOutputs="3">
+          <Output Type="Variable" Label="NA_T_AX_gmax" Expression="NA_T_AX_gmax"/>
+          <Output Type="Variable" Label="NA_T_SD_gmax" Expression="NA_T_SD_gmax"/>
+          <Output Type="Target" Label="n_bursts" Expression="n_bursts"/>
+        </Output>
+      </Selection>
+      <Class ClassIndex="0">
+        <Ranges>
+          <Range Index="0" Min="1.0085121154785156e+01" Max="4.9996490478515625e+01"/>
+          <Range Index="1" Min="1.5967464447021484e-01" Max="4.8107066154479980e+00"/>
+          <Range Index="2" Min="0.0000000000000000e+00" Max="3.0000000000000000e+00"/>
+        </Ranges>
+      </Class>
+    </Transform>
+  </Transformations>
+  <MVAPdfs/>
+  <Weights NPars="3" NDim="1" Formula="(0)+(1)*x0+(2)*x1">
+    <Parameter Index="0" Value="-1.0075860254097730e+00"/>
+    <Parameter Index="1" Value="2.4588283184499404e-02"/>
+    <Parameter Index="2" Value="-9.1734433329825338e-03"/>
+  </Weights>
+</MethodSetup>

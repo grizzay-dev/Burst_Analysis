@@ -140,3 +140,38 @@ void analysis::Loop()
   output->Write();
   output->Close();
 }
+
+void analysis::CompareTrees() {
+
+    TFile* f = new TFile("neur_test_I4.root");
+    TTree* T = (TTree*)f->Get("neur_test_large");
+  
+
+    TFile* ff = new TFile("burst.root");
+    TTree* TF = (TTree*)ff->Get("burst_data");
+
+    T->AddFriend("burst_data", "burst.root");
+    
+    TCanvas* c1 = new TCanvas("canvas", "multipads", 1600, 800);
+    c1->Divide(3, 3, 0, 0);
+    c1->cd(1);
+    T->Draw("K_D_gmax", "burst_type==1");
+    c1->cd(2);
+    T->Draw("KV3_1_gmax", "burst_type==1");
+    c1->cd(3);
+    T->Draw("KV2_FAST_gmax", "burst_type==1");
+    c1->cd(4);
+    T->Draw("KV2_SLOW_gmax", "burst_type==1");
+    c1->cd(5);
+    T->Draw("KV1_4_gmax", "burst_type==1");
+    c1->cd(6);
+    T->Draw("KV4_2_gmax", "burst_type==1");
+    c1->cd(7);
+    T->Draw("K_M_gmax", "burst_type==1");
+    c1->cd(8);
+    T->Draw("SK_gmax", "burst_type==1");
+    c1->cd(9);
+    T->Draw("NA_T_AX_gmax", "burst_type==1");
+    //T->Scan("burst_type:n_bursts:K_D_gmax", "n_bursts>7");
+
+}
