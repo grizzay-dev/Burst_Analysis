@@ -175,3 +175,76 @@ void analysis::CompareTrees() {
     //T->Scan("burst_type:n_bursts:K_D_gmax", "n_bursts>7");
 
 }
+
+void analysis::TTreeToCSV() {
+    //TTree
+    TFile* F = new TFile("neur_test_I4.root");
+    TTree* T = (TTree*)F->Get("neur_test_large");
+    T->AddFriend("burst_data", "burst.root");
+
+    //Output CSV
+    ofstream csv_output;
+    csv_output.open("ttree_output.csv");
+
+    //TTree leafs
+    int             id;
+    Float_t         K_D_gmax;
+    Float_t         KV3_1_gmax;
+    Float_t         KV2_FAST_gmax;
+    Float_t         KV2_SLOW_gmax;
+    Float_t         KV1_4_gmax;
+    Float_t         KV4_2_gmax;
+    Float_t         K_M_gmax;
+    Float_t         SK_gmax;
+    Float_t         NA_T_AX_gmax;
+    Float_t         NA_T_SD_gmax;
+    Float_t         NA_P_gmax;
+    Float_t         CA_LVA_gmax;
+    Float_t         CA_HVA_gmax;
+    Float_t         LEAK_gmax;
+    Float_t         IH_gmax;
+    int             burst_type;
+
+    T->SetBranchAddress("id", &id);
+    T->SetBranchAddress("K_D_gmax", &K_D_gmax);
+    T->SetBranchAddress("KV3_1_gmax", &KV3_1_gmax);
+    T->SetBranchAddress("KV2_FAST_gmax", &KV2_FAST_gmax);
+    T->SetBranchAddress("KV2_SLOW_gmax", &KV2_SLOW_gmax);
+    T->SetBranchAddress("KV1_4_gmax", &KV1_4_gmax);
+    T->SetBranchAddress("KV4_2_gmax", &KV4_2_gmax);
+    T->SetBranchAddress("K_M_gmax", &K_M_gmax);
+    T->SetBranchAddress("SK_gmax", &SK_gmax);
+    T->SetBranchAddress("NA_T_AX_gmax", &NA_T_AX_gmax);
+    T->SetBranchAddress("NA_T_SD_gmax", &NA_T_SD_gmax);
+    T->SetBranchAddress("NA_P_gmax", &NA_P_gmax);
+    T->SetBranchAddress("CA_LVA_gmax", &CA_LVA_gmax);
+    T->SetBranchAddress("CA_HVA_gmax", &CA_HVA_gmax);
+    T->SetBranchAddress("LEAK_gmax", &LEAK_gmax);
+    T->SetBranchAddress("IH_gmax", &IH_gmax);
+    T->SetBranchAddress("burst_type", &burst_type);
+
+
+    //SET HEADINGS
+    csv_output << "id,K_D_gmax,KV3_1_gmax,KV2_FAST_gmax,KV2_SLOW_gmax,KV1_4_gmax,KV4_2_gmax,K_M_gmax,SK_gmax,NA_T_AX_gmax,NA_T_SD_gmax,NA_P_gmax,CA_LVA_gmax,CA_HVA_gmax,LEAK_gmax,IH_gmax,burst_type\n";
+
+    //Loop through entries and write to file
+    Long64_t nentries = T->GetEntriesFast();
+    Long64_t nbytes = 0, nb = 0;
+
+    for (Long64_t ientry = 0; ientry < nentries; ientry++)
+    {
+        T->GetEntry(ientry);
+
+        //output row to csv
+        csv_output << id << ", " << K_D_gmax << "," << KV3_1_gmax << "," << KV2_FAST_gmax << "," << KV2_SLOW_gmax << "," << KV1_4_gmax << "," << KV4_2_gmax << ",";
+        csv_output << K_M_gmax << "," << SK_gmax << "," << NA_T_AX_gmax << "," << NA_T_SD_gmax << "," << NA_P_gmax << "," << CA_LVA_gmax << "," << CA_HVA_gmax << "," << LEAK_gmax << ",";
+        csv_output << IH_gmax << "," << burst_type;
+
+        //complete line
+        csv_output << endl;
+
+    }
+
+
+    csv_output.close();
+}
