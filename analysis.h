@@ -114,6 +114,7 @@ public :
    virtual ~analysis();
    virtual void     ProcessSingle(Long64_t entry, double k);
    virtual void     CompareTrees();
+   virtual void     TTreeToCSV();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
