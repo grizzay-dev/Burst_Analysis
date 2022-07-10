@@ -22,6 +22,13 @@ class Burst {
         //Spike train
         TH1C* spike_train;// {nullptr};
 
+        //spike train properties
+        int                     total_recording_time;
+        int                     injection_start;
+        int                     injection_end;
+        double                  seconds_per_bin;
+
+
         //Burst processing properties
         int                     id;
         int                     n_bins;
@@ -32,6 +39,7 @@ class Burst {
         double                  k{ 1 };
         double                  isi_sd{ 0 };
         double                  isi_mean{ 0 };
+        double                  isi_cutoff{ 2 };
         double                  isi_threshold{ 0 };
         double                  ln_mean{ 0 };
 
@@ -55,6 +63,14 @@ class Burst {
             spike_train = entry;
             id = entry_id;
             k = constant;
+
+            //set spike_train parameters
+            seconds_per_bin = spike_train->GetBinWidth(0);
+            n_bins = spike_train->GetNbinsX();
+
+            TAxis* x_axis = spike_train->GetXaxis();
+            injection_start = x_axis->GetXmin();
+            injection_end = x_axis->GetXmax();
         };
 
         virtual void    PrintMetrics();
@@ -117,15 +133,11 @@ void Burst::PrintMetrics(){
 }
 
 void Burst::Spikes() {
-    n_bins = spike_train->GetNbinsX();
-    n_spikes = spike_train->GetEntries();
-    if (n_spikes > 0) {
-        for (int bin = 0; bin <= n_bins; bin++) {
-            int spike_value;
-            spike_value = spike_train->GetBinContent(bin);
-            if (spike_value == 1) {
-                spikes_x.push_back((bin * 0.25) + 400);
-            }
+    for (int bin = 0; bin <= n_bins; bin++) {
+        double bin_value = spike_train->GetBinContent(bin);
+        if (bin_value > 0) {
+            n_spikes += 1;
+            spikes_x.push_back((bin * seconds_per_bin) + injection_start);
         }
     }
 }
@@ -198,7 +210,7 @@ void Burst::DetectBurst(){
     ML = ln_mean;
     if(n_bursts > 0){
         burst_average_duration = burst_total_duration / n_bursts;
-        burst_frequency = double(n_bursts) / 600.0; //current injection from 400ms to 600ms 
+        burst_frequency = double(n_bursts) / (injection_end - injection_start); //current injection from 400ms to 100ms 
     }
 }
 
@@ -208,7 +220,7 @@ void Burst::ProcessNeuron(){
     
     if(n_spikes > 0){
         ISI();
-        if(isi_threshold >= 2){
+        if(isi_threshold >= isi_cutoff){
             LN();
             DetectBurst();  
         } 
