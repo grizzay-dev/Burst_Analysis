@@ -71,6 +71,7 @@ class Burst {
             TAxis* x_axis = spike_train->GetXaxis();
             injection_start = x_axis->GetXmin();
             injection_end = x_axis->GetXmax();
+            total_recording_time = injection_end - injection_start;
         };
 
         virtual void    PrintMetrics();
