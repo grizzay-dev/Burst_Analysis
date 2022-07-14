@@ -7,26 +7,49 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TFile.h>
+
+#include <vector>
 #include <fstream>
 #include <cmath>
+#include <string>
+
+using namespace std;
 
 void analysis::ProcessSingle(Long64_t entry, double k = 1){
   
   if (fChain == 0) return;
   fChain->GetEntry(entry);
 
-  //Draw spike train
-  TCanvas *c1 = new TCanvas("canvas", "multipads", 1600, 600);
-  c1->Divide(1,2,0,0);
-  c1->cd(1);
-  spike->Draw();
-  c1->cd(2);
-  Vm_1nA->Draw();
-  
   //process spike train
   Burst b(entry, spike, k);
-  
+
   b.ProcessNeuron();
+
+  //Draw spike train
+  TCanvas *c1 = new TCanvas("canvas", "multipads", 1600, 800);
+  c1->Divide(1,3,0,0);
+
+  //https://root.cern.ch/root/htmldoc/guides/users-guide/FittingHistograms.html
+  // 
+  //TOP - isi_histogram
+  c1->cd(1);
+  gStyle->SetOptStat("s");
+  b.isi_histogram->Draw(); 
+  b.isi_histogram->Fit("gaus", "WW");
+  b.isi_histogram->Draw();
+
+  //CENTRE - spike_train
+  c1->cd(2);
+  double bin_max = spike->GetMaximum();
+  spike->GetYaxis()->SetRangeUser(0, (bin_max *1.5));
+  spike->Draw();
+  
+
+  //BOTTOM - Vm_1nA
+  c1->cd(3);
+  Vm_1nA->Draw();
+  
+
   if (b.n_spikes > 0) {
     b.PrintMetrics();
     TLine* line;
@@ -36,15 +59,15 @@ void analysis::ProcessSingle(Long64_t entry, double k = 1){
         int x1 = b.burst_locations.at(i).at(0);
         int x2 = b.burst_locations.at(i).at(1);
 
-        line = new TLine(b.spikes_x.at(x1), 0.5, b.spikes_x.at(x2), 0.5);
+        line = new TLine(b.spikes_x.at(x1), (bin_max*1.25), b.spikes_x.at(x2), (bin_max *1.25));
         line->SetLineWidth(10);
-        line->SetLineColorAlpha(kRed, 0.35);
+        line->SetLineColorAlpha(kRed, 0.1);
 
         c1->cd(1);
         line->Draw();
         c1->cd(2);
         line->Draw();
-        c1->cd(1);
+        
     }
     printf("\n\n Procesing complete");
     c1->Print("burst.png");

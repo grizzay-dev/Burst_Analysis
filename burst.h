@@ -21,6 +21,7 @@ class Burst {
     public : 
         //Spike train
         TH1C* spike_train;// {nullptr};
+        TH1* isi_histogram;
 
         //spike train properties
         int                     total_recording_time;
@@ -42,6 +43,7 @@ class Burst {
         double                  isi_cutoff{ 2 };
         double                  isi_threshold{ 0 };
         double                  ln_mean{ 0 };
+        double                  isi_skewness{ 0 };
 
         vector<double>          spikes_x;
         vector<double>          isi_sequence;
@@ -75,6 +77,7 @@ class Burst {
         };
 
         virtual void    PrintMetrics();
+        virtual void    ISIHistogram();
         virtual void    Spikes();
         virtual void    ISI();
         virtual void    LN();
@@ -105,6 +108,27 @@ double CumulativeAverage(int start, int end, vector<double> vect){
     n = (double)end - (double)start;
     avg = sum / n;
     return avg;
+}
+
+void Burst::ISIHistogram() {
+    // Only continue if atleast 2 spikes.
+    if (n_spikes < 2) return;
+
+    //Create histogram:
+    double x_max = *max_element(isi_sequence.begin(), isi_sequence.end());
+    x_max += (x_max * 0.1);  //add 10% space to end of x-axis
+    double isi_bins = x_max / seconds_per_bin;
+
+    isi_histogram = new TH1I("isi_histogram", "ISI Histogram", isi_bins, 0, x_max);
+    
+    //Fill histogram
+    for (double isi : isi_sequence) {
+        isi_histogram->Fill(isi);
+    }
+    
+    //Save skewness
+    isi_skewness = isi_histogram->GetSkewness();
+
 }
 
 void Burst::PrintMetrics(){
@@ -221,6 +245,7 @@ void Burst::ProcessNeuron(){
     
     if(n_spikes > 0){
         ISI();
+        ISIHistogram();
         if(isi_threshold >= isi_cutoff){
             LN();
             DetectBurst();  
