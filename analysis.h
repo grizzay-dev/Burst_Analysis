@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Tue Mar 22 10:02:58 2022 by ROOT version 6.26/00
+// Tue Aug 23 10:11:28 2022 by ROOT version 6.26/02
 // from TTree neur_test_large/[output] results of neuron test
-// found on file: neur_test_I4.root
+// found on file: ./neuron_P4.root
 //////////////////////////////////////////////////////////
 
 #ifndef analysis_h
@@ -112,9 +112,8 @@ public :
 
    analysis(TTree *tree=0);
    virtual ~analysis();
-   virtual void     ProcessSingle(Long64_t entry, double k);
-   virtual void     CompareTrees();
    virtual void     TTreeToCSV();
+   virtual void     ProcessSingle(Long64_t entry, double k);
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
@@ -132,9 +131,9 @@ analysis::analysis(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("neur_test_I4.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("./LCMV5_P4_n100000_001.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("neur_test_I4.root");
+         f = new TFile("./LCMV5_P4_n100000_001.root");
       }
       f->GetObject("neur_test_large",tree);
 
@@ -192,7 +191,7 @@ void analysis::Init(TTree *tree)
    fCurrent = -1;
    fChain->SetMakeClass(1);
 
-   /*fChain->SetBranchAddress("K_D_gmax", &K_D_gmax, &b_K_D_gmax);
+   fChain->SetBranchAddress("K_D_gmax", &K_D_gmax, &b_K_D_gmax);
    fChain->SetBranchAddress("KV3_1_gmax", &KV3_1_gmax, &b_KV3_1_gmax);
    fChain->SetBranchAddress("KV2_FAST_gmax", &KV2_FAST_gmax, &b_KV2_FAST_gmax);
    fChain->SetBranchAddress("KV2_SLOW_gmax", &KV2_SLOW_gmax, &b_KV2_SLOW_gmax);
@@ -229,12 +228,10 @@ void analysis::Init(TTree *tree)
    fChain->SetBranchAddress("Vm_0p1nA", &Vm_0p1nA, &b_Vm_0p1nA);
    fChain->SetBranchAddress("Vm_0p2nA", &Vm_0p2nA, &b_Vm_0p2nA);
    fChain->SetBranchAddress("Vm_0p5nA", &Vm_0p5nA, &b_Vm_0p5nA);
-   */
    fChain->SetBranchAddress("Vm_1nA", &Vm_1nA, &b_Vm_1nA);
-   //fChain->SetBranchAddress("Vm_soma", &Vm_soma, &b_Vm_soma);
-   
+   fChain->SetBranchAddress("Vm_soma", &Vm_soma, &b_Vm_soma);
    fChain->SetBranchAddress("spike", &spike, &b_spike);
-   //fChain->SetBranchAddress("FI", &FI, &b_FI);
+   fChain->SetBranchAddress("FI", &FI, &b_FI);
    Notify();
 }
 
@@ -263,5 +260,4 @@ Int_t analysis::Cut(Long64_t entry)
 // returns -1 otherwise.
    return 1;
 }
-
 #endif // #ifdef analysis_cxx
