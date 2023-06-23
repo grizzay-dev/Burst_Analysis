@@ -22,7 +22,7 @@ class Burst {
     public : 
         //Spike train
         TH1C* spike_train;          //{nullptr};
-        TH1* isi_histogram;         //isi (CMA Method)
+        TH1* isi_histogram {nullptr};         //isi (CMA Method)
         TH1* isi_cs_histogram;      //cumulative sum (CMA Method)
         TH1* isi_cma_histogram;     //cumulative average (CMA Method)
         
@@ -126,7 +126,7 @@ class Burst {
         virtual void    ProcessTree();
         virtual void    TreeToCSV();
         virtual void    SpkDetection(TH1F* V);
-        virtual void    CleanSpikes(int window);
+        virtual void    CleanSpikes(double window);
 };
 
 void PrintSequence(vector<double> sequence, string name = "Sequence:"){
@@ -212,7 +212,12 @@ void Burst::ISIHistogram() {
     double x_max = *max_element(isi_sequence.begin(), isi_sequence.end());
     //x_max += (x_max * 0.1);  //add 10% space to end of x-axis
     double isi_bins = x_max / seconds_per_bin;
-    isi_histogram = new TH1I("isi_histogram", "ISI Histogram", isi_bins, 0, x_max);
+    if(isi_histogram != nullptr) {
+        isi_histogram->Reset();
+        }
+        else {
+            isi_histogram = new TH1I("isi_histogram", "ISI Histogram", isi_bins, 0, x_max);
+        } 
 
     //Fill histogram
     for (double isi : isi_sequence) {
@@ -413,6 +418,7 @@ void Burst::ProcessNeuron(){
     //method: 0 = standard, 1 = cma
     cout << "\nProcessing entry: " << id;
     Spikes();
+    CleanSpikes(10);
     if(n_spikes > 0){
         ISI();
         ISIHistogram();
@@ -424,7 +430,8 @@ void Burst::ProcessNeuron(){
             DetectBurst();  
             CMADetectBurst();
         } 
-    } 
+    }
+    
 }
 
 void Burst::CalculateSkewness(){
@@ -507,7 +514,7 @@ void Burst::SpkDetection(TH1F *V){
 
         // Check if gradient (m_2) is positive
         if(Spk_Frame.m_2 > Spk_Frame.m_1){
-            
+
             // Set new peak of current spike
             Spk_Frame.vm_peak_x = Spk_Frame.x_2;
             Spk_Frame.vm_peak_y = Spk_Frame.y_2;
@@ -541,19 +548,64 @@ void Burst::SpkDetection(TH1F *V){
 }
 
 // Iterate through each spike in the train and check if it is valid.
-void Burst::CleanSpikes(int window){
+void Burst::CleanSpikes(double window){    
+
+
+
+    for (double spike : spikes_x){
+
+        // Frame for scanning before and after spikes
+        struct Frame {
+            float   start_x { 0 };
+            float   end_x { 0 };
+            float   x_1{ 0. };
+            float   y_1{ 0. };
+            float   x_2{ 0. };
+            float   y_2{ 0. };
+            float   m{ 0. };
+            float   m_max { 0. };
+        } Spk_Frame;
+
+
+        cout << "\nSpike: " << spike;
+        cout << "\n    BinContent: " << spike_train_V2->GetBinContent(spike);
+        cout << "\n    BinsWidth: " << V->GetBinWidth(0) << " NBins: " << V->GetNbinsX();
+        
+        
+
+        Spk_Frame.x_1 = spike - window;
+        if(Spk_Frame.x_1 < 1) {Spk_Frame.x_1 = 1;}
+        Spk_Frame.y_1 = V->GetBinContent(Spk_Frame.x_1);
+
+        Spk_Frame.x_2 = Spk_Frame.x_1 + (V->GetBinWidth(0));
+        if(Spk_Frame.x_2 > V->GetNbinsX()) { Spk_Frame.x_2 = V->GetNbinsX();}
+        Spk_Frame.y_2 =  V->GetBinContent(V->GetXaxis()->FindBin(Spk_Frame.x_2)); //V->GetBinContent(Spk_Frame.x_2);
+
+        Spk_Frame.start_x = Spk_Frame.x_1;
+        Spk_Frame.end_x = Spk_Frame.start_x + (window * 2);
+
+        while (Spk_Frame.x_1 < Spk_Frame.end_x){
+
+            //calculate m
+            Spk_Frame.m = (Spk_Frame.y_2 - Spk_Frame.y_1) / (Spk_Frame.x_2 - Spk_Frame.x_1);
+            if (Spk_Frame.m > Spk_Frame.m_max) {Spk_Frame.m_max = Spk_Frame.m;}
+
+            //print
+            printf("\n    1 - (%f, %f) - (%f, %f) - m: %f, m_max: %f", Spk_Frame.x_1, Spk_Frame.y_1, Spk_Frame.x_2, Spk_Frame.y_2, Spk_Frame.m, Spk_Frame.m_max);
+            
+            // Move frame 1 bin
+            Spk_Frame.x_1   +=  V->GetBinWidth(0);
+            Spk_Frame.y_1   =   V->GetBinContent(V->GetXaxis()->FindBin(Spk_Frame.x_1));
+
+            Spk_Frame.x_2   =  Spk_Frame.x_1 + (V->GetBinWidth(0));
+            Spk_Frame.y_2   =   V->GetBinContent(V->GetXaxis()->FindBin(Spk_Frame.x_2));
+        }
     
-    // Set start and finish range for the window.
-    int start_x = spike_x - range;
-    if (start_x < 0) {start_x = 0}
-
-    int end_x   = spike_x + range;
-    if (end_x > 0) {end_x = 0}
-
+        if(Spk_Frame.m_max < 100) {
+            spike_train_V2->SetBinContent(spike, 0);
+        }
     
-
-
-
+    }
 }
 
 
