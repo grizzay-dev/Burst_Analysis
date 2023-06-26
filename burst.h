@@ -100,7 +100,7 @@ class Burst {
             k = constant;
 
             SpkDetection(V);
-
+            
             //set seconds per bin using bin width
             seconds_per_bin = spike_train_V2->GetBinWidth(0);
             n_bins = spike_train_V2->GetNbinsX();
@@ -417,8 +417,15 @@ void Burst::DetectBurst(){
 void Burst::ProcessNeuron(){
     //method: 0 = standard, 1 = cma
     cout << "\nProcessing entry: " << id;
+    
     Spikes();
-    CleanSpikes(10);
+    CleanSpikes(5);
+    spikes_x.clear();
+    n_spikes = 0;
+    Spikes();
+
+    
+
     if(n_spikes > 0){
         ISI();
         ISIHistogram();
@@ -564,25 +571,35 @@ void Burst::CleanSpikes(double window){
             float   y_2{ 0. };
             float   m{ 0. };
             float   m_max { 0. };
-        } Spk_Frame;
+
+            Frame(int spike_x, TH1F* v_hist, double delta){
+                
+                // set start x & y
+                x_1 = spike_x - delta;
+                 if(x_1 < 1) {
+                    x_1 = 1;
+                }
+                y_1 = v_hist->GetBinContent(v_hist->GetXaxis()->FindBin(x_1));
+
+                // set end x & y
+                x_2 = x_1 + (v_hist->GetBinWidth(0));
+                if(x_2 > v_hist->GetNbinsX()) {
+                    x_2 = v_hist->GetNbinsX();
+                }
+                y_2 =  v_hist->GetBinContent(v_hist->GetXaxis()->FindBin(x_2));
+
+                start_x = x_1;
+                end_x = start_x + (delta * 2);
+            }
+        };
 
 
         cout << "\nSpike: " << spike;
         cout << "\n    BinContent: " << spike_train_V2->GetBinContent(spike);
         cout << "\n    BinsWidth: " << V->GetBinWidth(0) << " NBins: " << V->GetNbinsX();
-        
-        
 
-        Spk_Frame.x_1 = spike - window;
-        if(Spk_Frame.x_1 < 1) {Spk_Frame.x_1 = 1;}
-        Spk_Frame.y_1 = V->GetBinContent(Spk_Frame.x_1);
 
-        Spk_Frame.x_2 = Spk_Frame.x_1 + (V->GetBinWidth(0));
-        if(Spk_Frame.x_2 > V->GetNbinsX()) { Spk_Frame.x_2 = V->GetNbinsX();}
-        Spk_Frame.y_2 =  V->GetBinContent(V->GetXaxis()->FindBin(Spk_Frame.x_2)); //V->GetBinContent(Spk_Frame.x_2);
-
-        Spk_Frame.start_x = Spk_Frame.x_1;
-        Spk_Frame.end_x = Spk_Frame.start_x + (window * 2);
+        Frame Spk_Frame = Frame(spike, V, window);
 
         while (Spk_Frame.x_1 < Spk_Frame.end_x){
 
@@ -591,7 +608,7 @@ void Burst::CleanSpikes(double window){
             if (Spk_Frame.m > Spk_Frame.m_max) {Spk_Frame.m_max = Spk_Frame.m;}
 
             //print
-            printf("\n    1 - (%f, %f) - (%f, %f) - m: %f, m_max: %f", Spk_Frame.x_1, Spk_Frame.y_1, Spk_Frame.x_2, Spk_Frame.y_2, Spk_Frame.m, Spk_Frame.m_max);
+            if(spike == 1350) {printf("\n    1 - (%f, %f) - (%f, %f) - m: %f, m_max: %f", Spk_Frame.x_1, Spk_Frame.y_1, Spk_Frame.x_2, Spk_Frame.y_2, Spk_Frame.m, Spk_Frame.m_max);}
             
             // Move frame 1 bin
             Spk_Frame.x_1   +=  V->GetBinWidth(0);
@@ -601,7 +618,7 @@ void Burst::CleanSpikes(double window){
             Spk_Frame.y_2   =   V->GetBinContent(V->GetXaxis()->FindBin(Spk_Frame.x_2));
         }
     
-        if(Spk_Frame.m_max < 100) {
+        if(Spk_Frame.m_max < 20) {
             spike_train_V2->SetBinContent(spike, 0);
         }
     
