@@ -416,7 +416,7 @@ void Burst::DetectBurst(){
 
 void Burst::ProcessNeuron(){
     //method: 0 = standard, 1 = cma
-    cout << "\nProcessing entry: " << id;
+    cout << "\rProcessing entry: " << id;
     
     Spikes();
     CleanSpikes(5);
@@ -438,6 +438,7 @@ void Burst::ProcessNeuron(){
             CMADetectBurst();
         } 
     }
+    
     
 }
 
@@ -594,9 +595,9 @@ void Burst::CleanSpikes(double window){
         };
 
 
-        cout << "\nSpike: " << spike;
-        cout << "\n    BinContent: " << spike_train_V2->GetBinContent(spike);
-        cout << "\n    BinsWidth: " << V->GetBinWidth(0) << " NBins: " << V->GetNbinsX();
+        //cout << "\nSpike: " << spike;
+        //cout << "\n    BinContent: " << spike_train_V2->GetBinContent(spike);
+        //cout << "\n    BinsWidth: " << V->GetBinWidth(0) << " NBins: " << V->GetNbinsX();
 
 
         Frame Spk_Frame = Frame(spike, V, window);
@@ -608,7 +609,7 @@ void Burst::CleanSpikes(double window){
             if (Spk_Frame.m > Spk_Frame.m_max) {Spk_Frame.m_max = Spk_Frame.m;}
 
             //print
-            if(spike == 1350) {printf("\n    1 - (%f, %f) - (%f, %f) - m: %f, m_max: %f", Spk_Frame.x_1, Spk_Frame.y_1, Spk_Frame.x_2, Spk_Frame.y_2, Spk_Frame.m, Spk_Frame.m_max);}
+            //if(spike == 1350) {printf("\n    1 - (%f, %f) - (%f, %f) - m: %f, m_max: %f", Spk_Frame.x_1, Spk_Frame.y_1, Spk_Frame.x_2, Spk_Frame.y_2, Spk_Frame.m, Spk_Frame.m_max);}
             
             // Move frame 1 bin
             Spk_Frame.x_1   +=  V->GetBinWidth(0);

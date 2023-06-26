@@ -132,10 +132,10 @@ void analysis::Loop()
 //by  b_branchname->GetEntry(ientry); //read only this branch
    if (fChain == 0) return;
 
-   Long64_t nentries = fChain->GetEntriesFast();
-   Long64_t nbytes = 0, nb = 0;
+    Long64_t nentries = fChain->GetEntriesFast();
+    Long64_t nbytes = 0, nb = 0;
 
-   //Create root file for burst data tree
+    //Create root file for burst data tree
     TFile* output = new TFile("burst_p4_1nA.root", "recreate");
     //Parameters
     int     id,
