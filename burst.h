@@ -87,6 +87,7 @@ class Burst {
 
         vector<vector<int>>     burst_locations;
 
+        double                  longest_burst_duration{ 0 };
         double                  burst_total_duration{ 0 };
         double                  burst_average_duration{ 0 };
         double                  burst_frequency{ 0 };
@@ -127,6 +128,7 @@ class Burst {
         virtual void    TreeToCSV();
         virtual void    SpkDetection(TH1F* V);
         virtual void    CleanSpikes(double window);
+        virtual void    CalculateLongestBurst();
 };
 
 void PrintSequence(vector<double> sequence, string name = "Sequence:"){
@@ -258,6 +260,7 @@ void Burst::PrintMetrics(){
     printf("\n%-40s%-20f", "Total Burst Duration", burst_total_duration);
     printf("\n%-40s%-20f", "Avg burst duration", burst_average_duration);
     printf("\n%-40s%-20f", "Burst frequency", burst_frequency);
+    printf("\n%-40s%-20f", "Longest burst", longest_burst_duration);
     printf("\n%-40s%-20f", "ML", ML);
     printf("\n%-40s%-20f", "ISI Threshold", isi_threshold);
     printf("\n%-40s%-20f", "ISI ArgMax", isi_argmax);
@@ -438,8 +441,9 @@ void Burst::ProcessNeuron(){
             CMADetectBurst();
         } 
     }
-    
-    
+    if(cma_n_bursts > 0) {
+        CalculateLongestBurst();
+    }  
 }
 
 void Burst::CalculateSkewness(){
@@ -626,7 +630,15 @@ void Burst::CleanSpikes(double window){
     }
 }
 
-
+void Burst::CalculateLongestBurst() {
+    double burst_duration = 0;
+    for (vector<int> i : cma_burst_locations) {
+            burst_duration = spikes_x.at(i.at(1)) - spikes_x.at(i.at(0));
+            if (burst_duration >longest_burst_duration ){
+                longest_burst_duration = burst_duration;
+            }
+        }
+}
 #endif
 
 // working on 139 to get isi neighbour working

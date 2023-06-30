@@ -147,6 +147,7 @@ void analysis::Loop()
             burstFreq,
             totalBurstDur,
             avgBurstDur,
+            longestBurstDur,
             ML,
             isiThreshold,
             isiSkewness;
@@ -166,6 +167,7 @@ void analysis::Loop()
     tree->Branch("isi_skewness", &isiSkewness, "isi_skewness/D");
     tree->Branch("k", &k, "k/D");
     tree->Branch("n_spikes", &nSpikes, "n_spikes/I");
+    tree->Branch("longest_burst", &longestBurstDur, "longest_burst/D");
 
 
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
@@ -193,6 +195,7 @@ void analysis::Loop()
       isiThreshold = x.isi_threshold;
       isiSkewness = x.isi_skewness;
       nSpikes = x.n_spikes;
+      longestBurstDur = x.longest_burst_duration;
 
       tree->Fill();
    }
@@ -240,6 +243,7 @@ void analysis::TTreeToCSV() {
     double          isi_skewness;
     int             cma_burst;
     double          spike_freq;
+    double          longest_burst_duration;
 
     
 
@@ -263,10 +267,11 @@ void analysis::TTreeToCSV() {
     T->SetBranchAddress("burst_type", &burst_type);
     T->SetBranchAddress("isi_skewness", &isi_skewness);
     T->SetBranchAddress("cma_n_bursts", &cma_n_bursts);
+    T->SetBranchAddress("longest_burst_duration", &longest_burst_duration);
 
 
     //SET HEADINGS for outptu
-    csv_output << "id,K_D_gmax,KV3_1_gmax,KV2_FAST_gmax,KV1_4_gmax,KV4_2_gmax,K_M_gmax,SK_gmax,NA_T_AX_gmax,NA_T_SD_gmax,NA_P_gmax,CA_LVA_gmax,CA_HVA_gmax,IH_gmax,n_spikes,spike_freq,isi_skewness,cma_n_bursts,cma_burst\n";
+    csv_output << "id,K_D_gmax,KV3_1_gmax,KV2_FAST_gmax,KV1_4_gmax,KV4_2_gmax,K_M_gmax,SK_gmax,NA_T_AX_gmax,NA_T_SD_gmax,NA_P_gmax,CA_LVA_gmax,CA_HVA_gmax,IH_gmax,n_spikes,spike_freq,isi_skewness,cma_n_bursts,cma_burst,longest_burst_duration\n";
     
     //Loop through entries and write to file
     Long64_t nentries = T->GetEntriesFast();
@@ -287,7 +292,7 @@ void analysis::TTreeToCSV() {
         //output row to csv
         csv_output << id << "," << K_D_gmax << "," << KV3_1_gmax << "," << KV2_FAST_gmax << "," << KV1_4_gmax << "," << KV4_2_gmax << ",";
         csv_output << K_M_gmax << "," << SK_gmax << "," << NA_T_AX_gmax << "," << NA_T_SD_gmax << "," << NA_P_gmax << "," << CA_LVA_gmax << "," << CA_HVA_gmax << ",";
-        csv_output << IH_gmax << "," << n_spikes << "," << spike_freq << "," << isi_skewness << "," << cma_n_bursts << "," << cma_burst;
+        csv_output << IH_gmax << "," << n_spikes << "," << spike_freq << "," << isi_skewness << "," << cma_n_bursts << "," << cma_burst << "," << longest_burst_duration;
 
         //complete line
         csv_output << endl;
