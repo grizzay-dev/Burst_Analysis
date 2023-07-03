@@ -122,10 +122,10 @@ void analysis::Loop()
 // METHOD2: replace line
 //    fChain->GetEntry(jentry);       //read all branches
 //by  b_branchname->GetEntry(ientry); //read only this branch
+    cout << " - START PROCESSING - ";
+    if (fChain == 0) return;
 
-   if (fChain == 0) return;
-    
-    
+
 
     Long64_t nentries = fChain->GetEntriesFast();
     Long64_t nbytes = 0, nb = 0;
@@ -146,7 +146,7 @@ void analysis::Loop()
             ML,
             isiThreshold,
             isiSkewness;
-    
+
     //Create tree
     TTree* tree = new TTree("burst_data", "Burst Data");
     //Add branches
@@ -199,7 +199,8 @@ void analysis::Loop()
         tree->Fill();
     }
 
-   //commit tree to output file
+    //commit tree to output file
+    cout << "\nSaving TTree...";
     output->Write();
     output->Close();
 
@@ -210,6 +211,7 @@ void analysis::Loop()
 
 
 void analysis::TTreeToCSV() {
+    cout << "\nExporting data to csv...";
     //TTree
     TFile* F = new TFile("LCMV5_P4_n100000_001.root");
     TTree* T = (TTree*)F->Get("neur_test_large");
@@ -284,14 +286,14 @@ void analysis::TTreeToCSV() {
 
         if (longest_burst_duration > 1000) {
             cma_burst = 2;
-        } else if (cma_burst > 1){
+        } else if (cma_n_bursts > 1){
             cma_burst = 1;
         } else {
             cma_burst = 0;
         }
 
         //output row to csv
-        csv_output << id << "," << K_D_gmax << "," << KV3_1_gmax << "," << KV2_FAST_gmax << "," << KV1_4_gmax << "," << KV4_2_gmax << ",";
+        csv_output << id+1 << "," << K_D_gmax << "," << KV3_1_gmax << "," << KV2_FAST_gmax << "," << KV1_4_gmax << "," << KV4_2_gmax << ",";
         csv_output << K_M_gmax << "," << SK_gmax << "," << NA_T_AX_gmax << "," << NA_T_SD_gmax << "," << NA_P_gmax << "," << CA_LVA_gmax << "," << CA_HVA_gmax << ",";
         csv_output << IH_gmax << "," << n_spikes << "," << spike_freq << "," << isi_skewness << "," << cma_n_bursts << "," << cma_burst << "," << longest_burst_duration;
 
@@ -300,4 +302,5 @@ void analysis::TTreeToCSV() {
 
     }
     csv_output.close();
+    cout << "\n - COMPLETE - ";
 }
