@@ -107,15 +107,7 @@
 
 void analysis::Loop()
 {
-//   In a ROOT session, you can do:
-//      root> .L analysis.C
-//      root> analysis t
-//      root> t.GetEntry(12); // Fill t data members with entry number 12
-//      root> t.Show();       // Show values of entry 12
-//      root> t.Show(16);     // Read and show values of entry 16
-//      root> t.Loop();       // Loop on all entries
-//
-
+    TH1::AddDirectory(false);
 //     This is the loop skeleton where:
 //    jentry is the global entry number in the chain
 //    ientry is the entry number in the current Tree
@@ -130,7 +122,10 @@ void analysis::Loop()
 // METHOD2: replace line
 //    fChain->GetEntry(jentry);       //read all branches
 //by  b_branchname->GetEntry(ientry); //read only this branch
+
    if (fChain == 0) return;
+    
+    
 
     Long64_t nentries = fChain->GetEntriesFast();
     Long64_t nbytes = 0, nb = 0;
@@ -167,38 +162,42 @@ void analysis::Loop()
     tree->Branch("isi_skewness", &isiSkewness, "isi_skewness/D");
     tree->Branch("k", &k, "k/D");
     tree->Branch("n_spikes", &nSpikes, "n_spikes/I");
-    tree->Branch("longest_burst", &longestBurstDur, "longest_burst/D");
+    tree->Branch("longest_burst_duration", &longestBurstDur, "longest_burst_duration/D");
 
 
-   for (Long64_t jentry=0; jentry<nentries;jentry++) {
-      Long64_t ientry = LoadTree(jentry);
-      if (ientry < 0) break;
-      nb = fChain->GetEntry(jentry);   nbytes += nb;
-      // if (Cut(ientry) < 0) continue;
+    for (Long64_t jentry=0; jentry<nentries;jentry++) {
+        Long64_t ientry = LoadTree(jentry);
+        if (ientry < 0) break;
+        nb = fChain->GetEntry(jentry);   nbytes += nb;
+        // if (Cut(ientry) < 0) continue;
 
-      //Process spike train
-      //TH1C* hist = (TH1C*)spike->Clone();
-      Burst x(jentry, spike, Vm_1nA);
+        //Process spike train
+        //TH1C* hist = (TH1C*)spike->Clone();
+        Burst x(jentry, spike, Vm_1nA);
 
-      x.ProcessNeuron();
+        x.ProcessNeuron();
 
-      //Save to burst tree
-      id = x.id;
-      k = x.k;
-      burst = x.burst_type;
-      nBursts = x.n_bursts;
-      cmaNBurst = x.cma_n_bursts;
-      burstFreq = x.burst_frequency;
-      totalBurstDur = x.burst_total_duration;
-      avgBurstDur = x.burst_average_duration;
-      ML = x.ML;
-      isiThreshold = x.isi_threshold;
-      isiSkewness = x.isi_skewness;
-      nSpikes = x.n_spikes;
-      longestBurstDur = x.longest_burst_duration;
 
-      tree->Fill();
-   }
+        cout << "\rProcessing entry: " << jentry << " of " << nentries << ".";
+        
+
+        //Save to burst tree
+        id = x.id;
+        k = x.k;
+        burst = x.burst_type;
+        nBursts = x.n_bursts;
+        cmaNBurst = x.cma_n_bursts;
+        burstFreq = x.burst_frequency;
+        totalBurstDur = x.burst_total_duration;
+        avgBurstDur = x.burst_average_duration;
+        ML = x.ML;
+        isiThreshold = x.isi_threshold;
+        isiSkewness = x.isi_skewness;
+        nSpikes = x.n_spikes;
+        longestBurstDur = x.longest_burst_duration;
+
+        tree->Fill();
+    }
 
    //commit tree to output file
     output->Write();
@@ -283,7 +282,9 @@ void analysis::TTreeToCSV() {
 
         spike_freq = n_spikes / 5.0;
 
-        if(cma_n_bursts>0){
+        if (longest_burst_duration > 1000) {
+            cma_burst = 2;
+        } else if (cma_burst > 1){
             cma_burst = 1;
         } else {
             cma_burst = 0;

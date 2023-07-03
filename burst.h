@@ -21,13 +21,13 @@ class Burst {
     //Method of burst detection adapated from: https://www.sciencedirect.com/science/article/pii/S1002007108003432
     public : 
         //Spike train
-        TH1C* spike_train;          //{nullptr};
+        TH1C* spike_train {nullptr};          //{nullptr};
         TH1* isi_histogram {nullptr};         //isi (CMA Method)
-        TH1* isi_cs_histogram;      //cumulative sum (CMA Method)
-        TH1* isi_cma_histogram;     //cumulative average (CMA Method)
+        TH1* isi_cs_histogram {nullptr};      //cumulative sum (CMA Method)
+        TH1* isi_cma_histogram {nullptr};     //cumulative average (CMA Method)
         
-        TH1C* spike_train_V2;
-        TH1F* V;
+        TH1C* spike_train_V2 {nullptr};
+        TH1F* V {nullptr};
 
         //spike train properties
         int                     total_recording_time;
@@ -214,12 +214,8 @@ void Burst::ISIHistogram() {
     double x_max = *max_element(isi_sequence.begin(), isi_sequence.end());
     //x_max += (x_max * 0.1);  //add 10% space to end of x-axis
     double isi_bins = x_max / seconds_per_bin;
-    if(isi_histogram != nullptr) {
-        isi_histogram->Reset();
-        }
-        else {
-            isi_histogram = new TH1I("isi_histogram", "ISI Histogram", isi_bins, 0, x_max);
-        } 
+    delete isi_histogram;
+    isi_histogram = new TH1I("isi_histogram", "ISI Histogram", isi_bins, 0, x_max);
 
     //Fill histogram
     for (double isi : isi_sequence) {
@@ -417,10 +413,7 @@ void Burst::DetectBurst(){
     }
 }
 
-void Burst::ProcessNeuron(){
-    //method: 0 = standard, 1 = cma
-    cout << "\rProcessing entry: " << id;
-    
+void Burst::ProcessNeuron(){    
     Spikes();
     CleanSpikes(5);
     spikes_x.clear();
@@ -508,8 +501,8 @@ void Burst::SpkDetection(TH1F *V){
 
     // TH1C* spk_hist_2;
     delete spike_train_V2;
-    
     spike_train_V2 = new TH1C("spk_hist_2", "Spike Detection v2", 500 + n_bins_Vm * s_per_bin_Vm, 0, 500 + n_bins_Vm * s_per_bin_Vm); // check parameters to fit size
+
     TAxis* hist_axis_X = V->GetXaxis();
     spike_train_V2->GetXaxis()->SetRange(hist_axis_X->GetXmin(), hist_axis_X->GetXmax());
 
