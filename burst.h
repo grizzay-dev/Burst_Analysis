@@ -556,9 +556,12 @@ void Burst::SpkDetection(TH1F *V){
 void Burst::CleanSpikes(double window){    
 
 
-
     for (double spike : spikes_x){
 
+        // Remove dupliacte spike recordings
+        if(spike_train_V2->GetBinContent(spike) > 1){
+            spike_train_V2->SetBinContent(spike, 1);
+        }
         // Frame for scanning before and after spikes
         struct Frame {
             float   start_x { 0 };
